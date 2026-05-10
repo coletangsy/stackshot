@@ -39,3 +39,7 @@ uv run playwright install chromium
 ```
 
 PowerPoint conversion requires LibreOffice or `soffice` on `PATH`.
+
+## HTML Slide Decks
+
+For HTML decks that use `.slide` elements and JavaScript navigation, `stackshot` captures each slide state separately and stitches those screenshots vertically. Regular scrolling HTML pages still use a normal full-page screenshot.
