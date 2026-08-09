@@ -43,6 +43,14 @@ def stitch_frames(
             image.close()
 
 
+def two_column_widths(width: int, gap: int) -> tuple[int, int]:
+    left_width = (width - gap) // 2
+    right_width = width - gap - left_width
+    if left_width <= 0 or right_width <= 0:
+        raise ValueError("`gap` must leave room for two document tiles.")
+    return left_width, right_width
+
+
 def stitch_document_tiles(
     tiles: list[Path],
     output_path: Path,
@@ -54,26 +62,13 @@ def stitch_document_tiles(
     if not tiles:
         raise ValueError("No document tiles were produced for the layout manifest.")
 
-    left_width = (width - gap) // 2
-    right_width = width - gap - left_width
-    if left_width <= 0 or right_width <= 0:
-        raise ValueError("`gap` must leave room for two document tiles.")
-
+    left_width, _ = two_column_widths(width, gap)
     background = ImageColor.getrgb(bg)
     prepared: list[Image.Image] = []
     try:
-        for index, tile in enumerate(tiles):
-            cell_width = left_width if index % 2 == 0 else right_width
+        for tile in tiles:
             with Image.open(tile) as source:
                 image = source.convert("RGB")
-            if image.width != cell_width:
-                ratio = cell_width / image.width
-                resized = image.resize(
-                    (cell_width, max(1, round(image.height * ratio))),
-                    Image.Resampling.LANCZOS,
-                )
-                image.close()
-                image = resized
             prepared.append(image)
 
         row_heights = [

@@ -1,11 +1,10 @@
 import tomllib
-from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Protocol
 
 from .options import ConvertOptions
-from .stitch import stitch_document_tiles, stitch_frames
+from .stitch import stitch_document_tiles, stitch_frames, two_column_widths
 
 
 class Adapter(Protocol):
@@ -55,6 +54,7 @@ class StackshotPipeline:
 
     def _convert_layout(self, sources: list[Path], output_path: Path, options: ConvertOptions) -> None:
         adapters = [self._adapter_for(source) for source in sources]
+        column_widths = two_column_widths(options.width, options.gap)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with TemporaryDirectory(prefix="stackshot-", dir=output_path.parent) as temp_dir:
             work_root = Path(temp_dir)
@@ -62,12 +62,15 @@ class StackshotPipeline:
             for index, (source, adapter) in enumerate(zip(sources, adapters, strict=True)):
                 work_dir = work_root / f"source-{index}"
                 work_dir.mkdir()
-                render_options = options
-                if source.suffix.lower() not in {".html", ".htm", ".md", ".markdown"}:
-                    render_options = replace(options, css_path=None)
-                frames = adapter.render(source, work_dir, render_options)
+                frames = adapter.render(source, work_dir, options)
                 tile = work_root / f"tile-{index}.png"
-                stitch_frames(frames, tile, width=options.width, gap=options.gap, bg=options.bg)
+                stitch_frames(
+                    frames,
+                    tile,
+                    width=column_widths[index % 2],
+                    gap=options.gap,
+                    bg=options.bg,
+                )
                 tiles.append(tile)
             rendered_output = work_root / "output.png"
             stitch_document_tiles(tiles, rendered_output, width=options.width, gap=options.gap, bg=options.bg)

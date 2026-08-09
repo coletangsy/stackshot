@@ -90,6 +90,37 @@ def test_layout_manifest_keeps_multiframe_source_in_one_document_tile(tmp_path):
         assert image.getpixel((50, 15)) == (255, 255, 255)
 
 
+def test_layout_manifest_uses_the_same_gap_inside_and_between_document_tiles(tmp_path):
+    config = tmp_path / "layout.toml"
+    config.write_text(
+        'columns = 2\ninputs = ["multi.html", "single.html"]\nwidth = 100\ngap = 10\nbg = "#010203"',
+        encoding="utf-8",
+    )
+    for name in ("multi.html", "single.html"):
+        (tmp_path / name).write_text("source", encoding="utf-8")
+
+    pipeline = StackshotPipeline(
+        {
+            ".html": FakeAdapter(
+                {
+                    "multi.html": [((100, 20), "red"), ((100, 20), "blue")],
+                    "single.html": [((100, 20), "green")],
+                }
+            )
+        }
+    )
+    output = tmp_path / "output.png"
+
+    _convert_layout_manifest(config, output, pipeline=pipeline)
+
+    with Image.open(output) as image:
+        assert image.size == (100, 28)
+        assert image.getpixel((0, 8)) == (255, 0, 0)
+        assert image.getpixel((0, 15)) == (1, 2, 3)
+        assert image.getpixel((0, 19)) == (0, 0, 255)
+        assert image.getpixel((50, 0)) == (1, 2, 3)
+
+
 @pytest.mark.parametrize(
     ("manifest", "message"),
     [
@@ -158,7 +189,7 @@ def test_layout_manifest_resolves_relative_paths_and_allows_repeated_sources(tmp
     assert all(call[1].css_path == stylesheet.resolve() for call in adapter.calls)
 
 
-def test_layout_manifest_applies_stylesheet_only_to_web_sources(tmp_path):
+def test_layout_manifest_defers_stylesheet_handling_to_adapters(tmp_path):
     config = tmp_path / "layout.toml"
     config.write_text(
         'columns = 2\ninputs = ["page.html", "document.pdf"]\ncss = "shared.css"',
@@ -178,4 +209,4 @@ def test_layout_manifest_applies_stylesheet_only_to_web_sources(tmp_path):
     )
 
     assert html_adapter.calls[0][1].css_path == stylesheet.resolve()
-    assert pdf_adapter.calls[0][1].css_path is None
+    assert pdf_adapter.calls[0][1].css_path == stylesheet.resolve()
