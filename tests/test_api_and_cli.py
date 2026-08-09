@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from stackshot import convert
-from stackshot.cli import build_parser
+from stackshot.cli import build_parser, main
 
 
 class RecordingPipeline:
@@ -80,3 +80,38 @@ def test_cli_parser_exposes_requested_flags():
     assert args.gap == 8
     assert args.bg == "#eeeeee"
     assert args.css == "style.css"
+
+
+def test_cli_config_uses_manifest_and_keeps_output_on_the_command_line(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "stackshot.cli._convert_layout_manifest",
+        lambda config, output: calls.append((config, output)),
+    )
+
+    assert main(["--config", "layout.toml", "-o", "output.png"]) == 0
+
+    assert calls == [("layout.toml", "output.png")]
+
+
+def test_cli_single_input_still_uses_convert_defaults(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "stackshot.cli.convert",
+        lambda input_path, output_path, **options: calls.append((input_path, output_path, options)),
+    )
+
+    assert main(["input.md", "-o", "output.png"]) == 0
+
+    assert calls == [
+        (
+            "input.md",
+            "output.png",
+            {"width": 1200, "scale": 1, "gap": 0, "bg": "#ffffff", "css": None},
+        )
+    ]
+
+
+def test_cli_rejects_rendering_overrides_with_a_layout_manifest():
+    with pytest.raises(SystemExit):
+        main(["--config", "layout.toml", "-o", "output.png", "--width", "900"])

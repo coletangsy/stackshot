@@ -22,6 +22,28 @@ uv run stackshot INPUT -o OUTPUT --width 1200 --scale 1 --gap 0 --bg "#ffffff" -
 
 Markdown uses built-in GitHub-like CSS unless `--css` is provided.
 
+## Layout manifests
+
+Use `--config` to compose local source documents into a two-column PNG:
+
+```sh
+uv run stackshot --config layout.toml -o comparison.png
+```
+
+```toml
+columns = 2
+inputs = ["left.md", "right.pdf", "appendix.pptx"]
+width = 1200
+gap = 16
+bg = "#ffffff"
+css = "shared.css"
+```
+
+`inputs` and `css` paths are relative to the manifest. The optional `width`,
+`scale`, `gap`, and `bg` values apply to every source; use the manifest rather
+than rendering flags with `--config`. The stylesheet applies only to Markdown
+and HTML sources.
+
 ## Python API
 
 ```python

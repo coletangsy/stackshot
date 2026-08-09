@@ -1,9 +1,11 @@
 import shutil
 from pathlib import Path
 
+import fitz
 import pytest
 
 from stackshot.adapters.html import HtmlAdapter
+from stackshot.adapters.pdf import PdfAdapter
 from stackshot.adapters.ppt import PowerPointAdapter
 from stackshot.options import ConvertOptions
 
@@ -26,3 +28,19 @@ def test_html_adapter_reports_missing_playwright_browser(monkeypatch, tmp_path):
 
     with pytest.raises(RuntimeError, match="Playwright browser dependencies are missing"):
         HtmlAdapter().render(page, tmp_path, ConvertOptions(width=100))
+
+
+def test_pdf_adapter_ignores_optional_stylesheet(tmp_path):
+    source = tmp_path / "document.pdf"
+    document = fitz.open()
+    document.new_page(width=100, height=100)
+    document.save(source)
+    document.close()
+
+    frames = PdfAdapter().render(
+        source,
+        tmp_path,
+        ConvertOptions(width=100, css_path=tmp_path / "missing.css"),
+    )
+
+    assert frames == [tmp_path / "page-0001.png"]
