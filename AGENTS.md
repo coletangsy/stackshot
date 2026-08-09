@@ -31,3 +31,13 @@ PowerPoint conversion requires LibreOffice or `soffice` on `PATH`.
 - PPT/PPTX files are converted to PDF with LibreOffice, then rendered as PDF pages.
 
 Keep format-specific behavior in `src/stackshot/adapters/` so adapters remain independently testable.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues in `coletangsy/stackshot` are the issue tracker. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+This repo uses a single-context domain-doc layout. See `docs/agents/domain.md`.
