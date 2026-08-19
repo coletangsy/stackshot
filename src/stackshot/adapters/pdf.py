@@ -8,8 +8,7 @@ from ..options import ConvertOptions
 class PdfAdapter:
     def render(self, input_path: Path, work_dir: Path, options: ConvertOptions) -> list[Path]:
         frames: list[Path] = []
-        document = fitz.open(input_path)
-        try:
+        with fitz.open(input_path) as document:
             for index, page in enumerate(document, start=1):
                 page_width = page.rect.width
                 zoom = (options.width / page_width) * options.scale
@@ -17,6 +16,4 @@ class PdfAdapter:
                 frame = work_dir / f"page-{index:04d}.png"
                 pixmap.save(frame)
                 frames.append(frame)
-        finally:
-            document.close()
         return frames

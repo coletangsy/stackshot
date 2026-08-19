@@ -107,7 +107,7 @@ def test_cli_single_input_still_uses_convert_defaults(monkeypatch):
         (
             "input.md",
             "output.png",
-            {"width": 1200, "scale": 1, "gap": 0, "bg": "#ffffff", "css": None},
+            {},
         )
     ]
 

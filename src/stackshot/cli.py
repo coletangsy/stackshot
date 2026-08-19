@@ -5,32 +5,23 @@ from . import convert
 from .pipeline import _convert_layout_manifest
 
 
-class _StoreRenderingOption(argparse.Action):
-    def __call__(self, _parser, namespace, values, option_string=None) -> None:
-        setattr(namespace, self.dest, values)
-        overrides = getattr(namespace, "_rendering_overrides", [])
-        overrides.append(option_string or f"--{self.dest.replace('_', '-')}")
-        setattr(namespace, "_rendering_overrides", overrides)
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="stackshot",
         description="Convert Markdown, HTML, PDF, and PowerPoint files into one vertical PNG.",
     )
-    parser.add_argument("input", nargs="?", help="Input .md, .html, .pdf, .ppt, or .pptx file")
-    parser.add_argument("--config", help="TOML layout manifest")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("input", nargs="?", help="Input .md, .html, .pdf, .ppt, or .pptx file")
+    source.add_argument("--config", help="TOML layout manifest")
     parser.add_argument("-o", "--output", required=True, help="Output PNG path")
+    parser.add_argument("--width", type=int, default=argparse.SUPPRESS, help="Output width in pixels")
     parser.add_argument(
-        "--width", type=int, default=1200, action=_StoreRenderingOption, help="Output width in pixels"
+        "--scale", type=float, default=argparse.SUPPRESS, help="Rendering scale multiplier"
     )
+    parser.add_argument("--gap", type=int, default=argparse.SUPPRESS, help="Gap between frames in pixels")
+    parser.add_argument("--bg", default=argparse.SUPPRESS, help="Background color")
     parser.add_argument(
-        "--scale", type=float, default=1, action=_StoreRenderingOption, help="Rendering scale multiplier"
-    )
-    parser.add_argument("--gap", type=int, default=0, action=_StoreRenderingOption, help="Gap between frames in pixels")
-    parser.add_argument("--bg", default="#ffffff", action=_StoreRenderingOption, help="Background color")
-    parser.add_argument(
-        "--css", default=None, action=_StoreRenderingOption, help="Optional CSS file for Markdown/HTML rendering"
+        "--css", default=argparse.SUPPRESS, help="Optional CSS file for Markdown/HTML rendering"
     )
     return parser
 
@@ -38,25 +29,17 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if bool(args.input) == bool(args.config):
-        parser.error("provide either INPUT or --config")
-    if args.config:
-        overrides = getattr(args, "_rendering_overrides", [])
-        if overrides:
-            parser.error(f"{', '.join(overrides)} cannot be used with --config")
+    rendering_options = {
+        name: value for name, value in vars(args).items() if name not in {"input", "config", "output"}
+    }
+    if args.config and rendering_options:
+        overrides = ", ".join(f"--{name}" for name in rendering_options)
+        parser.error(f"{overrides} cannot be used with --config")
     try:
         if args.config:
             _convert_layout_manifest(args.config, args.output)
         else:
-            convert(
-                args.input,
-                args.output,
-                width=args.width,
-                scale=args.scale,
-                gap=args.gap,
-                bg=args.bg,
-                css=args.css,
-            )
+            convert(args.input, args.output, **rendering_options)
     except Exception as exc:
         print(f"stackshot: {exc}", file=sys.stderr)
         return 1

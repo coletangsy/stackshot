@@ -28,7 +28,6 @@ class PowerPointAdapter:
                 str(work_dir),
                 str(input_path),
             ],
-            check=False,
             capture_output=True,
             text=True,
         )

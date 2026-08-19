@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 from markdown_it import MarkdownIt
@@ -78,11 +79,5 @@ class MarkdownAdapter:
         html = markdown_to_html_document(markdown_text, css_text)
         html_path = work_dir / f"{input_path.stem or 'markdown'}.html"
         html_path.write_text(html, encoding="utf-8")
-        html_options = ConvertOptions(
-            width=options.width,
-            scale=options.scale,
-            gap=options.gap,
-            bg=options.bg,
-            css_path=None,
-        )
+        html_options = replace(options, css_path=None)
         return self.html_adapter.render(html_path, work_dir, html_options)
