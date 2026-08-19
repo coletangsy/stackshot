@@ -29,6 +29,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if not (args.input or args.config):
+        parser.error("provide either INPUT or --config")
     rendering_options = {
         name: value for name, value in vars(args).items() if name not in {"input", "config", "output"}
     }
