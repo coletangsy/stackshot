@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
 from stackshot.stitch import stitch_frames
@@ -26,9 +27,5 @@ def test_stitch_frames_resizes_to_width_and_applies_gap_and_background(tmp_path)
 
 
 def test_stitch_frames_requires_at_least_one_frame(tmp_path):
-    try:
+    with pytest.raises(ValueError, match="No frames were produced"):
         stitch_frames([], tmp_path / "output.png", width=100)
-    except ValueError as exc:
-        assert "No frames were produced" in str(exc)
-    else:
-        raise AssertionError("expected ValueError")

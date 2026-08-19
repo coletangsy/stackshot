@@ -107,7 +107,7 @@ def test_cli_single_input_still_uses_convert_defaults(monkeypatch):
         (
             "input.md",
             "output.png",
-            {"width": 1200, "scale": 1, "gap": 0, "bg": "#ffffff", "css": None},
+            {},
         )
     ]
 
@@ -115,3 +115,9 @@ def test_cli_single_input_still_uses_convert_defaults(monkeypatch):
 def test_cli_rejects_rendering_overrides_with_a_layout_manifest():
     with pytest.raises(SystemExit):
         main(["--config", "layout.toml", "-o", "output.png", "--width", "900"])
+
+
+@pytest.mark.parametrize("source", [[""], ["--config", ""]])
+def test_cli_rejects_empty_source(source):
+    with pytest.raises(SystemExit):
+        main([*source, "-o", "output.png"])
