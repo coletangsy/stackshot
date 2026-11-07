@@ -2,6 +2,12 @@
 
 `stackshot` converts Markdown, HTML, PDF, and PowerPoint files into one vertical PNG.
 
+## Maintainer Documentation
+
+- [Repository guidance](AGENTS.md)
+- [Architecture overview](ARCHITECTURE.md)
+- [Changelog](CHANGELOG.md)
+
 ## Usage
 
 ```sh

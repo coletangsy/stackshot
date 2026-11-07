@@ -41,3 +41,10 @@ GitHub Issues in `coletangsy/stackshot` are the issue tracker. See `docs/agents/
 ### Domain docs
 
 This repo uses a single-context domain-doc layout. See `docs/agents/domain.md`.
+
+## Documentation
+
+- [README](README.md) is the command and format support entry point.
+- [ARCHITECTURE.md](ARCHITECTURE.md) describes adapters, rendering engines, layout manifests, and stitching.
+- [CHANGELOG.md](CHANGELOG.md) records delivered behavior and documentation changes.
+- Update `ARCHITECTURE.md` when supported formats, rendering engines, layout semantics, or output contracts change. Update `CHANGELOG.md` for user-visible or operator-visible changes.
